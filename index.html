@@ -33,21 +33,19 @@
                 <input type="text" class="form-control" id="village" name="village">
             </div>
             <div class="mb-3">
+                <label for="mobile" class="form-label">Mobile Number</label>
+                <input type="text" class="form-control" id="mobile" name="mobile" required>
+            </div>
+            <div class="mb-3">
+                <button type="button" class="btn btn-secondary" id="getLocation">Get Current Location</button>
+            <!-- </div> -->
+            <!-- <div class="mb-3"> -->
+                <button type="button" class="btn btn-secondary" id="getAddressByPin">Get Address by PIN</button>
+            </div>
+            <!-- <div class="mb-3">
                 <label for="post" class="form-label">Post</label>
                 <input type="text" class="form-control" id="post" name="post">
-            </div>
-            <div class="mb-3">
-                <label for="tehsil" class="form-label">Tehsil (Taluka/Mandal)</label>
-                <input type="text" class="form-control" id="tehsil" name="tehsil">
-            </div>
-            <div class="mb-3">
-                <label for="district" class="form-label">District</label>
-                <input type="text" class="form-control" id="district" name="district" required>
-            </div>
-            <div class="mb-3">
-                <label for="state" class="form-label">State</label>
-                <input type="text" class="form-control" id="state" name="state" required>
-            </div>
+            </div> -->
             <div class="mb-3">
                 <label for="pinCode" class="form-label">Pin Code</label>
                 <input type="text" class="form-control" id="pinCode" name="pinCode" required>
@@ -60,9 +58,18 @@
             </div>
 
             <div class="mb-3">
-                <label for="mobile" class="form-label">Mobile Number</label>
-                <input type="text" class="form-control" id="mobile" name="mobile" required>
+                <label for="tehsil" class="form-label">Tehsil (Taluka/Mandal)</label>
+                <input type="text" class="form-control" id="tehsil" name="tehsil">
             </div>
+            <div class="mb-3">
+                <label for="district" class="form-label">District</label>
+                <input type="text" class="form-control" id="district" name="district" required>
+            </div>
+            <div class="mb-3">
+                <label for="state" class="form-label">State</label>
+                <input type="text" class="form-control" id="state" name="state" required>
+            </div>
+            
             <div class="mb-3">
                 <label for="bookName" class="form-label">Book Name</label>
                 <input type="text" class="form-control" id="bookName" name="bookName" required>
@@ -74,12 +81,7 @@
             <div class="mb-3">
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>
-            <div class="mb-3">
-                <button type="button" class="btn btn-secondary" id="getLocation">Get Current Location</button>
-            </div>
-            <div class="mb-3">
-                <button type="button" class="btn btn-secondary" id="getAddressByPin">Get Address by PIN</button>
-            </div>
+            
 
         </form>
     </div>
@@ -137,7 +139,7 @@
 
                         // Map address components to form fields
                         document.getElementById('village').value = findComponent(address, 'locality') || '';
-                        document.getElementById('post').value = findComponent(address, 'sublocality_level_1') || '';
+                        //document.getElementById('post').value = findComponent(address, 'sublocality_level_1') || '';
                         document.getElementById('tehsil').value = findComponent(address, 'administrative_area_level_2') || '';
                         document.getElementById('district').value = findComponent(address, 'administrative_area_level_2') || '';
                         document.getElementById('state').value = findComponent(address, 'administrative_area_level_1') || '';
@@ -192,7 +194,7 @@
                     // Automatically populate fields with the first post office's data
                     const firstOffice = postOffices[0];
                     document.getElementById('village').value = firstOffice.Name || '';
-                    document.getElementById('post').value = firstOffice.Block || '';
+                    //document.getElementById('post').value = firstOffice.Block || '';
                     document.getElementById('district').value = firstOffice.District || '';
                     document.getElementById('state').value = firstOffice.State || '';
                 } else {
