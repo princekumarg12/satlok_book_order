@@ -208,59 +208,26 @@
         const bookNameInput = document.getElementById('bookName');
         const languageInput = document.getElementById('language');
 
-        bookOptions.forEach((option) => {
+        const bookDetails = {
+            'gyan_ganga_english': { bookName: 'Gyan Ganga', language: 'English' },
+            'gyan_ganga_kannada': { bookName: 'Gyan Ganga', language: 'Kannada' },
+            'gyan_ganga_tamil': { bookName: 'Gyan Ganga', language: 'Tamil' },
+            'gyan_ganga_hindi': { bookName: 'Gyan Ganga', language: 'Hindi' },
+            'gyan_ganga_malayalam': { bookName: 'Gyan Ganga', language: 'Malayalam' },
+            'jeene_ki_rah_hindi': { bookName: 'Jeene ki Rah', language: 'Hindi' },
+            'jeene_ki_rah_telugu': { bookName: 'Jeene ki Rah', language: 'Telugu' },
+            'jeene_ki_rah_english': { bookName: 'Jeene ki Rah', language: 'English' },
+            'jeene_ki_rah_kannada': { bookName: 'Jeene ki Rah', language: 'Kannada' }
+        };
+
+        bookOptions.forEach(option => {
             option.addEventListener('change', (event) => {
-                const selectedValue = event.target.value;
-                let bookName = '';
-                let language = '';
-
-                switch (selectedValue) {
-                    case 'gyan_ganga_english':
-                        bookName = 'Gyan Ganga';
-                        language = 'English';
-                        break;
-                    case 'gyan_ganga_kannada':
-                        bookName = 'Gyan Ganga';
-                        language = 'Kannada';
-                        break;
-                    case 'gyan_ganga_tamil':
-                        bookName = 'Gyan Ganga';
-                        language = 'Tamil';
-                        break;
-                    case 'gyan_ganga_hindi':
-                        bookName = 'Gyan Ganga';
-                        language = 'Hindi';
-                        break;
-                    case 'gyan_ganga_malayalam':
-                        bookName = 'Gyan Ganga';
-                        language = 'Malayalam';
-                        break;
-                    case 'jeene_ki_rah_hindi':
-                        bookName = 'Jeene ki Rah';
-                        language = 'Hindi';
-                        break;
-                    case 'jeene_ki_rah_telugu':
-                        bookName = 'Jeene ki Rah';
-                        language = 'Telugu';
-                        break;
-                    case 'jeene_ki_rah_english':
-                        bookName = 'Jeene ki Rah';
-                        language = 'English';
-                        break;
-                    case 'jeene_ki_rah_kannada':
-                        bookName = 'Jeene ki Rah';
-                        language = 'Kannada';
-                        break;
-                    default:
-                        bookName = '';
-                        language = '';
-                }
-
-
+                const { bookName, language } = bookDetails[event.target.value] || { bookName: '', language: '' };
                 bookNameInput.value = bookName;
                 languageInput.value = language;
             });
         });
+
         const form = document.getElementById('orderForm');
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -294,82 +261,35 @@
                 return;
             }
 
-            navigator.geolocation.getCurrentPosition(async (position) => {
+            try {
+                const position = await getCurrentPosition();
                 const { latitude, longitude } = position.coords;
-                console.log("coordintes: ", `${latitude},${longitude}`)
-                try {
-                    // Use Google Maps Geocoding API
-                    const response = await fetch(
-                        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyCkiWlO9Bk2NtevcY3RzFPHjok2t8ihYuA`
-                    );
+                console.log("Coordinates:", `${latitude},${longitude}`);
 
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch location data.');
-                    }
-
-                    const data = await response.json();
-                    if (data.results && data.results[0]) {
-                        const address = data.results[0].address_components;
-
-                        // Map address components to form fields
-                        document.getElementById('village').value = findComponent(address, 'locality') || '';
-                        //document.getElementById('post').value = findComponent(address, 'sublocality_level_1') || '';
-                        document.getElementById('tehsil').value = findComponent(address, 'administrative_area_level_2') || '';
-                        document.getElementById('district').value = findComponent(address, 'administrative_area_level_2') || '';
-                        document.getElementById('state').value = findComponent(address, 'administrative_area_level_1') || '';
-                        document.getElementById('pinCode').value = findComponent(address, 'postal_code') || '';
-                    } else {
-                        alert('No address found for the current location.');
-                    }
-                } catch (error) {
-                    console.error(error);
-                    alert('Failed to fetch address. Please try again later.');
+                const address = await fetchAddressByCoordinates(latitude, longitude);
+                if (address) {
+                    populateAddressFields(address);
+                } else {
+                    alert('No address found for the current location.');
                 }
-            });
+            } catch (error) {
+                console.error(error);
+                alert('Failed to fetch address. Please try again later.');
+            }
         });
-
-        // Helper function to extract specific address components
-        function findComponent(components, type) {
-            const component = components.find((comp) => comp.types.includes(type));
-            return component ? component.long_name : null;
-        }
-
-
 
         document.getElementById('pinCode').addEventListener('blur', async () => {
             const pinCode = document.getElementById('pinCode').value.trim();
 
-            if (pinCode.length !== 6 || isNaN(pinCode)) {
+            if (!isValidPinCode(pinCode)) {
                 alert('Please enter a valid 6-digit PIN code.');
                 return;
             }
 
             try {
-                const response = await fetch(`https://api.postalpincode.in/pincode/${pinCode}`); // Fetch address by PIN code
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch address data.');
-                }
-
-                const data = await response.json();
-                const postOfficeDropdown = document.getElementById('postOffice');
-                postOfficeDropdown.innerHTML = '<option value="">Select Post Office</option>'; // Clear previous options
-
-                if (data[0] && data[0].Status === 'Success') {
-                    const postOffices = data[0].PostOffice;
-
-                    postOffices.forEach((office) => {
-                        const option = document.createElement('option');
-                        option.value = office.Name;
-                        option.textContent = office.Name;
-                        postOfficeDropdown.appendChild(option);
-                    });
-
-                    // Automatically populate fields with the first post office's data
-                    const firstOffice = postOffices[0];
-                    document.getElementById('village').value = firstOffice.Name || '';
-                    document.getElementById('district').value = firstOffice.District || '';
-                    document.getElementById('state').value = firstOffice.State || '';
+                const postOffices = await fetchAddressByPinCode(pinCode);
+                if (postOffices) {
+                    populatePostOfficeDropdown(postOffices);
                 } else {
                     alert('No address found for the entered PIN code.');
                 }
@@ -378,6 +298,66 @@
                 alert('Failed to fetch address. Please try again later.');
             }
         });
+
+        // Helper functions
+        async function getCurrentPosition() {
+            return new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject);
+            });
+        }
+
+        async function fetchAddressByCoordinates(latitude, longitude) {
+            const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyCkiWlO9Bk2NtevcY3RzFPHjok2t8ihYuA`);
+            if (!response.ok) throw new Error('Failed to fetch location data.');
+
+            const data = await response.json();
+            return data.results && data.results[0] ? data.results[0].address_components : null;
+        }
+
+        function populateAddressFields(address) {
+            document.getElementById('village').value = findComponent(address, 'locality') || '';
+            document.getElementById('tehsil').value = findComponent(address, 'administrative_area_level_2') || '';
+            document.getElementById('district').value = findComponent(address, 'administrative_area_level_2') || '';
+            document.getElementById('state').value = findComponent(address, 'administrative_area_level_1') || '';
+            document.getElementById('pinCode').value = findComponent(address, 'postal_code') || '';
+        }
+
+        async function fetchAddressByPinCode(pinCode) {
+            const response = await fetch(`https://api.postalpincode.in/pincode/${pinCode}`);
+            if (!response.ok) throw new Error('Failed to fetch address data.');
+
+            const data = await response.json();
+            return data[0] && data[0].Status === 'Success' ? data[0].PostOffice : null;
+        }
+
+        function populatePostOfficeDropdown(postOffices) {
+            const postOfficeDropdown = document.getElementById('postOffice');
+            postOfficeDropdown.innerHTML = '<option value="">Select Post Office</option>'; // Clear previous options
+
+            postOffices.forEach(office => {
+                const option = document.createElement('option');
+                option.value = office.Name;
+                option.textContent = office.Name;
+                postOfficeDropdown.appendChild(option);
+            });
+
+            // Automatically populate fields with the first post office's data
+            const firstOffice = postOffices[0];
+            document.getElementById('village').value = firstOffice.Name || '';
+            document.getElementById('district').value = firstOffice.District || '';
+            document.getElementById('state').value = firstOffice.State || '';
+        }
+
+        function isValidPinCode(pinCode) {
+            return pinCode.length === 6 && !isNaN(pinCode);
+        }
+
+        // Helper function to extract specific address components
+        function findComponent(components, type) {
+            const component = components.find(comp => comp.types.includes(type));
+            return component ? component.long_name : null;
+        }
+
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
